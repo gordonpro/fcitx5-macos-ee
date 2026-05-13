@@ -287,9 +287,14 @@ void MacosFrontend::focusIn(ICUUID uuid, bool isPassword) {
     auto program = ic->program();
     FCITX_INFO() << "Focus in " << program;
     if (!program.empty()) {
-        useAppDefaultIM(program);
+        // Focusing on another input field in the same app shouldn't activate
+        // default IM.
+        if (program != lastFocusedApp_) {
+            useAppDefaultIM(program);
+        }
         useVimMode(program, ic);
     }
+    lastFocusedApp_ = program;
 }
 
 std::string MacosFrontend::commitComposition(ICUUID uuid) {
