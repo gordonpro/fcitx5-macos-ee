@@ -190,9 +190,10 @@ struct AvailableInputMethodView: View {
     NavigationSplitView {
       List(selection: $viewModel.selectedLanguageCode) {
         ForEach(languages(viewModel: viewModel), id: \.code) { language in
-          Text(language.localized)
+          Text(language.localized).accessibilityIdentifier(language.code)
         }
       }.frame(minWidth: columnWidth)
+        .accessibilityIdentifier("LanguageList")
       Toggle(
         NSLocalizedString("Only show current language", comment: ""),
         isOn: Binding(
@@ -207,24 +208,29 @@ struct AvailableInputMethodView: View {
             ForEach(viewModel.availableIMsForLanguage, id: \.self) { im in
               Text(im.displayName).fontWeight(popularIMs.contains(im.name) ? .bold : .regular)
                 .listRowSeparator(.hidden)
+                .accessibilityIdentifier("Add:\(im.name)")
             }
           }.contextMenu(forSelectionType: InputMethod.self) { _ in
           } primaryAction: { items in
             onAdd(items)
             enabled.formUnion(items.map { $0.name })
             viewModel.refresh(enabled)
+            selection.removeAll()
           }
           .overlay(RoundedRectangle(cornerRadius: listBorderRadius).stroke(listBorderColor))
-          .padding([.top, .leading, .trailing])
+          .frame(width: keyboardWidth)
+          .padding(.top)
 
           if selection.count == 1, let im = selection.first, im.isKeyboard {
-            KeyboardViewer(layout: $layout).padding([.leading, .trailing])
+            KeyboardViewer(layout: $layout)
           } else {
             Text("Keyboard layout not available")
               .frame(height: keyboardHeight)
+              .accessibilityIdentifier("KeyboardLayoutPrompt")
           }
         } else {
           Text("Select a language from the left list.").frame(maxHeight: .infinity)
+            .accessibilityIdentifier("SelectLanguagePrompt")
         }
 
         HStack {
@@ -250,7 +256,10 @@ struct AvailableInputMethodView: View {
             Text("Add")
           }.buttonStyle(.borderedProminent)
             .disabled(selection.isEmpty)
-        }.padding([.horizontal, .bottom])
+            .accessibilityIdentifier("Add")
+        }
+        .frame(width: keyboardWidth)
+        .padding(.bottom)
       }
     }
     .frame(width: sheetWidth, height: sheetHeight)
